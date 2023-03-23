@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from uuid import UUID
 from datetime import datetime
 from typing import Optional, List
-from models.posts import Post
+from schemas.posts import PostResponse
 
 class ChannelIn(BaseModel):
     name: str
@@ -18,4 +18,4 @@ class ChannelResponse(ChannelIn):
     created: datetime
     updated: Optional[datetime]
     user_id: UUID
-    # posts: Optional[List[Post]]
+    posts: List[PostResponse]

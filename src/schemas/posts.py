@@ -12,7 +12,7 @@ class PostIn(BaseModel):
         orm_mode = True
 
 class PostResponse(PostIn):
-    id: Optional[UUID]
-    created: Optional[datetime]
+    id: UUID
+    created: datetime
     updated: Optional[datetime]
-    channel_id: Optional[UUID]
+    channel_id: UUID

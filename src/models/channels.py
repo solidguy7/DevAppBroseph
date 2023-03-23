@@ -15,4 +15,4 @@ class Channel(Base):
     created = Column(DateTime, server_default=func.now())
     updated = Column(DateTime, onupdate=func.now())
     user_id = Column(UUID(as_uuid=True), ForeignKey('users.id'))
-    posts = relationship('Post', backref='channel', cascade="all, delete-orphan")
+    posts = relationship('Post', backref='channel', cascade='all, delete-orphan', lazy='selectin')
