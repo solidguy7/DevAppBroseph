@@ -14,4 +14,4 @@ class Post(Base):
     created = Column(DateTime, server_default=func.now())
     updated = Column(DateTime, onupdate=func.now())
     channel_id = Column(UUID(as_uuid=True), ForeignKey('channels.id'))
-    comments = relationship('Comment', backref='post', cascade="all, delete-orphan")
+    comments = relationship('Comment', backref='post', cascade="all, delete-orphan", lazy='selectin')

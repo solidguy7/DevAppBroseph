@@ -35,7 +35,7 @@ async def update_post(id: UUID, post: PostUpdate, user: str = Depends(authentica
                          session: AsyncSession = Depends(get_session)) -> PostResponse:
     result = await session.execute(select(Post).where(Post.channel.has(Channel.user.has(User.username == user))))
     if not result.scalar():
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Channel doesn`t have any posts yet')
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Channel doesn`t have such a post')
     await session.execute(update(Post).where(Post.id == id).values(**post.dict()))
     await session.commit()
     result = await session.get(entity=Post, ident=id)
@@ -45,7 +45,7 @@ async def update_post(id: UUID, post: PostUpdate, user: str = Depends(authentica
 async def delete_post(id: UUID, user: str = Depends(authenticate), session: AsyncSession = Depends(get_session)) -> dict:
     result = await session.execute(select(Post).where(Post.channel.has(Channel.user.has(User.username == user))))
     if not result.scalar():
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Channel doesn`t have any posts yet')
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Channel doesn`t have such a post')
     await session.execute(delete(Post).where(Post.id == id))
     await session.commit()
     return {'message': 'Channel deleted successfully'}

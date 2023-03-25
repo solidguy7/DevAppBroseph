@@ -34,7 +34,7 @@ async def update_channel(id: UUID, channel: ChannelIn, user: str = Depends(authe
                          session: AsyncSession = Depends(get_session)) -> ChannelResponse:
     result = await session.execute(select(Channel).where(Channel.user.has(User.username == user)))
     if not result.scalar():
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User doesn`t have any channels yet')
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User doesn`t have such a channel')
     await session.execute(update(Channel).where(Channel.id == id).values(**channel.dict()))
     await session.commit()
     result = await session.get(entity=Channel, ident=id)
@@ -44,7 +44,7 @@ async def update_channel(id: UUID, channel: ChannelIn, user: str = Depends(authe
 async def delete_channel(id: UUID, user: str = Depends(authenticate), session: AsyncSession = Depends(get_session)) -> dict:
     result = await session.execute(select(Channel).where(Channel.user.has(User.username == user)))
     if not result.scalar():
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User doesn`t have any channels yet')
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User doesn`t have such a channel')
     await session.execute(delete(Channel).where(Channel.id == id))
     await session.commit()
     return {'message': 'Channel deleted successfully'}

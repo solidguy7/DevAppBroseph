@@ -1,7 +1,8 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 from uuid import UUID
 from datetime import datetime
+from schemas.comments import CommentResponse
 
 class PostUpdate(BaseModel):
     name: str
@@ -18,3 +19,4 @@ class PostResponse(PostIn):
     id: UUID
     created: datetime
     updated: Optional[datetime]
+    comments: List[CommentResponse]
