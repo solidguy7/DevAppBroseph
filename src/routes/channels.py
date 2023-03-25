@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from uuid import UUID
-from typing import List, Optional
+from typing import List
 from sqlalchemy import insert, update, delete
 from auth.authenticate import authenticate
 from models.users import User

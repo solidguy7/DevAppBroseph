@@ -3,7 +3,7 @@ from typing import Optional
 from uuid import UUID
 from datetime import datetime
 
-class PostIn(BaseModel):
+class PostUpdate(BaseModel):
     name: str
     description: str
 
@@ -11,8 +11,10 @@ class PostIn(BaseModel):
         arbitrary_types_allowed = True
         orm_mode = True
 
+class PostIn(PostUpdate):
+    channel_id: UUID
+
 class PostResponse(PostIn):
     id: UUID
     created: datetime
     updated: Optional[datetime]
-    channel_id: UUID
