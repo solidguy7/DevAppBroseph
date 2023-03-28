@@ -2,7 +2,9 @@ import asyncio
 import httpx
 import pytest
 from main import app
-from database.connection import init_models, drop_models
+from database.connection import Settings
+
+test_settings = Settings(env='test')
 
 @pytest.fixture(scope='session')
 def event_loop():
@@ -10,15 +12,9 @@ def event_loop():
     yield loop
     loop.close()
 
-async def init_db():
-    await init_models(env='test')
-
-async def drop_db():
-    await drop_models(env='test')
-
 @pytest.fixture(scope='session')
 async def default_client():
-    await init_db()
+    await test_settings.init_models()
     async with httpx.AsyncClient(app=app, base_url='http://app') as client:
         yield client
-        await drop_db()
+        await test_settings.drop_models()

@@ -6,14 +6,16 @@ from auth.hash_password import HashPassword
 from auth.jwt_handler import create_access_token
 from models.users import User
 from schemas.users import UserIn, TokenResponse
-from database.connection import get_session
+from database.connection import Settings
+
+settings = Settings()
 
 hash_password = HashPassword()
 
 user_router = APIRouter(tags=['Users'])
 
 @user_router.post('/signup')
-async def sign_user_up(user: UserIn, session: AsyncSession = Depends(get_session)) -> dict:
+async def sign_user_up(user: UserIn, session: AsyncSession = Depends(settings.get_session)) -> dict:
     result = await session.execute(select(User).where(User.email == user.email))
     user_exist = result.first()
     if user_exist:
@@ -26,7 +28,8 @@ async def sign_user_up(user: UserIn, session: AsyncSession = Depends(get_session
     return {'message': 'User created successfully'}
 
 @user_router.post('/signin', response_model=TokenResponse)
-async def sign_user_in(user: OAuth2PasswordRequestForm = Depends(), session: AsyncSession = Depends(get_session)) -> dict:
+async def sign_user_in(user: OAuth2PasswordRequestForm = Depends(), session: AsyncSession = Depends(
+    settings.get_session)) -> dict:
     result = await session.execute(select(User).where(User.username == user.username))
     user_exist = result.scalar()
     if not user_exist:

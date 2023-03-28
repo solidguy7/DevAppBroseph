@@ -8,22 +8,25 @@ from auth.authenticate import authenticate
 from models.users import User
 from models.comments import Comment
 from schemas.comments import CommentIn, CommentResponse
-from database.connection import get_session
+from database.connection import Settings
+
+settings = Settings()
 
 comment_router = APIRouter(tags=['Comments'])
 
 @comment_router.get('/', response_model=List[CommentResponse])
-async def get_all_comments(session: AsyncSession = Depends(get_session)) -> List[CommentResponse]:
+async def get_all_comments(session: AsyncSession = Depends(settings.get_session)) -> List[CommentResponse]:
     results = await session.execute(select(Comment))
     return list(results.scalars().all())
 
 @comment_router.get('/{id}', response_model=CommentResponse)
-async def get_comment(id: UUID, session: AsyncSession = Depends(get_session)) -> CommentResponse:
+async def get_comment(id: UUID, session: AsyncSession = Depends(settings.get_session)) -> CommentResponse:
     result = await session.get(entity=Comment, ident=id)
     return result
 
 @comment_router.post('/{id}')
-async def create_comment(id: UUID, comment: CommentIn, user: str = Depends(authenticate), session: AsyncSession = Depends(get_session)) -> dict:
+async def create_comment(id: UUID, comment: CommentIn, user: str = Depends(
+    authenticate), session: AsyncSession = Depends(settings.get_session)) -> dict:
     user_id = await session.execute(select(User.id).where(User.username == user))
     await session.execute(insert(Comment).values(user_id=user_id.scalar(), post_id=id, **comment.dict()))
     await session.commit()
@@ -31,7 +34,7 @@ async def create_comment(id: UUID, comment: CommentIn, user: str = Depends(authe
 
 @comment_router.put('/{id}', response_model=CommentResponse)
 async def update_channel(id: UUID, comment: CommentIn, user: str = Depends(authenticate),
-                         session: AsyncSession = Depends(get_session)) -> CommentResponse:
+                         session: AsyncSession = Depends(settings.get_session)) -> CommentResponse:
     comment_user_id = await session.execute(select(Comment.user_id).where(Comment.id == id))
     user_id = await session.execute(select(User.id).where(User.username == user))
     if comment_user_id.scalar() != user_id.scalar():
@@ -42,7 +45,8 @@ async def update_channel(id: UUID, comment: CommentIn, user: str = Depends(authe
     return result
 
 @comment_router.delete('/{id}')
-async def delete_channel(id: UUID, user: str = Depends(authenticate), session: AsyncSession = Depends(get_session)) -> dict:
+async def delete_channel(id: UUID, user: str = Depends(authenticate), session: AsyncSession = Depends(
+    settings.get_session)) -> dict:
     comment_user_id = await session.execute(select(Comment.user_id).where(Comment.id == id))
     user_id = await session.execute(select(User.id).where(User.username == user))
     if comment_user_id.scalar() != user_id.scalar():
