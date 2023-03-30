@@ -1,4 +1,5 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ValidationError
+from fastapi import HTTPException, status
 
 class UserIn(BaseModel):
     username: str

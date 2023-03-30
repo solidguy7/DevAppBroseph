@@ -7,25 +7,23 @@ from auth.authenticate import authenticate
 from models.users import User, user_channel
 from models.channels import Channel
 from schemas.channels import ChannelIn, ChannelResponse
-from database.connection import Settings
-
-settings = Settings()
+from database.connection import get_session
 
 channel_router = APIRouter(tags=['Channels'])
 
 @channel_router.get('/', response_model=List[ChannelResponse])
-async def get_all_channels(session: AsyncSession = Depends(settings.get_session)) -> List[ChannelResponse]:
+async def get_all_channels(session: AsyncSession = Depends(get_session)) -> List[ChannelResponse]:
     results = await session.execute(select(Channel))
     return list(results.scalars().all())
 
 @channel_router.get('/{id}', response_model=ChannelResponse)
-async def get_channel(id: UUID, session: AsyncSession = Depends(settings.get_session)) -> ChannelResponse:
+async def get_channel(id: UUID, session: AsyncSession = Depends(get_session)) -> ChannelResponse:
     result = await session.get(entity=Channel, ident=id)
     return result
 
 @channel_router.post('/')
 async def create_channel(channel: ChannelIn, user: str = Depends(authenticate), session: AsyncSession = Depends(
-    settings.get_session)) -> dict:
+    get_session)) -> dict:
     user_id = await session.execute(select(User.id).where(User.username == user))
     await session.execute(insert(Channel).values(user_id=user_id.scalar(), **channel.dict()))
     await session.commit()
@@ -33,7 +31,7 @@ async def create_channel(channel: ChannelIn, user: str = Depends(authenticate), 
 
 @channel_router.post('/follow/{id}')
 async def follow(id: UUID, user: str = Depends(authenticate), session: AsyncSession = Depends(
-    settings.get_session)) -> dict:
+    get_session)) -> dict:
     user_id = await session.execute(select(User.id).where(User.username == user))
     user_id = user_id.scalar()
     user_channel_id = await session.execute(select(Channel.user_id).where(Channel.id == id))
@@ -50,7 +48,7 @@ async def follow(id: UUID, user: str = Depends(authenticate), session: AsyncSess
 
 @channel_router.put('/{id}', response_model=ChannelResponse)
 async def update_channel(id: UUID, channel: ChannelIn, user: str = Depends(authenticate),
-                         session: AsyncSession = Depends(settings.get_session)) -> ChannelResponse:
+                         session: AsyncSession = Depends(get_session)) -> ChannelResponse:
     channel_user_id = await session.execute(select(Channel.user_id).where(Channel.id == id))
     user_id = await session.execute(select(User.id).where(User.username == user))
     if channel_user_id.scalar() != user_id.scalar():
@@ -62,7 +60,7 @@ async def update_channel(id: UUID, channel: ChannelIn, user: str = Depends(authe
 
 @channel_router.delete('/{id}')
 async def delete_channel(id: UUID, user: str = Depends(authenticate), session: AsyncSession = Depends(
-    settings.get_session)) -> dict:
+    get_session)) -> dict:
     channel_user_id = await session.execute(select(Channel.user_id).where(Channel.id == id))
     user_id = await session.execute(select(User.id).where(User.username == user))
     if channel_user_id.scalar() != user_id.scalar():

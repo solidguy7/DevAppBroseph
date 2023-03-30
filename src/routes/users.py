@@ -1,22 +1,20 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, insert
+from sqlalchemy import select, insert, or_
 from auth.hash_password import HashPassword
 from auth.jwt_handler import create_access_token
 from models.users import User
 from schemas.users import UserIn, TokenResponse
-from database.connection import Settings
-
-settings = Settings()
+from database.connection import get_session
 
 hash_password = HashPassword()
 
 user_router = APIRouter(tags=['Users'])
 
 @user_router.post('/signup')
-async def sign_user_up(user: UserIn, session: AsyncSession = Depends(settings.get_session)) -> dict:
-    result = await session.execute(select(User).where(User.email == user.email))
+async def sign_user_up(user: UserIn, session: AsyncSession = Depends(get_session)) -> dict:
+    result = await session.execute(select(User).where(or_(User.email == user.email, User.username == user.username)))
     user_exist = result.first()
     if user_exist:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='User with email provided exists already.')
@@ -29,15 +27,13 @@ async def sign_user_up(user: UserIn, session: AsyncSession = Depends(settings.ge
 
 @user_router.post('/signin', response_model=TokenResponse)
 async def sign_user_in(user: OAuth2PasswordRequestForm = Depends(), session: AsyncSession = Depends(
-    settings.get_session)) -> dict:
+    get_session)) -> dict:
     result = await session.execute(select(User).where(User.username == user.username))
     user_exist = result.scalar()
-    if not user_exist:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User does not exist')
-    if hash_password.verify_hash(user.password, user_exist.password):
+    if user_exist and hash_password.verify_hash(user.password, user_exist.password):
         access_token = create_access_token(user_exist.username)
         return {
             'access_token': access_token,
             'token_type': 'Bearer'
         }
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid details passed')
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User with such credentials does not exist')

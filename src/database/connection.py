@@ -5,29 +5,21 @@ import os
 
 load_dotenv()
 
+DATABASE_URL: str = f'postgresql+asyncpg://{os.getenv("POSTGRES_USER")}:{os.getenv("POSTGRES_PASSWORD")}@localhost:5432/postgres'
 SECRET_KEY: str = os.getenv('SECRET_KEY')
 
 Base = declarative_base()
+engine = create_async_engine(DATABASE_URL, echo=True)
+async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
-class Settings:
-    def __init__(self, env: str = 'postgres') -> None:
-        self.env = env
+async def init_models() -> None:
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
-    @staticmethod
-    def get_engine(env: str):
-        DATABASE_URL: str = f'postgresql+asyncpg://{os.getenv("POSTGRES_USER")}:{os.getenv("POSTGRES_PASSWORD")}@localhost:5432/{env}'
-        engine = create_async_engine(DATABASE_URL, echo=True)
-        return engine
+async def drop_models() -> None:
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
 
-    async def init_models(self) -> None:
-        async with Settings.get_engine(self.env).begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-
-    async def drop_models(self) -> None:
-        async with Settings.get_engine(self.env).begin() as conn:
-            await conn.run_sync(Base.metadata.drop_all)
-
-    async def get_session(self) -> AsyncSession:
-        async_session = async_sessionmaker(Settings.get_engine(self.env), class_=AsyncSession, expire_on_commit=False)
-        async with async_session() as session:
-            yield session
+async def get_session() -> AsyncSession:
+    async with async_session() as session:
+        yield session

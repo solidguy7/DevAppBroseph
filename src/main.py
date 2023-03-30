@@ -9,11 +9,9 @@ from models.users import User
 from models.channels import Channel
 from models.posts import Post
 from models.comments import Comment
-from database.connection import Settings
+from database.connection import init_models
 
 app = FastAPI()
-
-settings = Settings()
 
 origins = ['*']
 
@@ -32,7 +30,7 @@ app.include_router(comment_router, prefix='/comments')
 
 @app.on_event('startup')
 async def init_db() -> None:
-    await settings.init_models()
+    await init_models()
 
 if __name__ == '__main__':
     uvicorn.run('main:app', host='0.0.0.0', port=8000, reload=True)
