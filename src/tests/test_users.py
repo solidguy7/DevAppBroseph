@@ -1,4 +1,7 @@
 import httpx
+from sqlalchemy import insert
+from .conftest import async_session_test
+from models.users import User
 
 async def test_sign_up(default_client: httpx.AsyncClient) -> None:
     payload = {

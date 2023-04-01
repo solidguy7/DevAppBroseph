@@ -5,7 +5,7 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from main import app
-from database.connection import Base, get_session, init_models, drop_models
+from database.connection import Base, get_session
 
 load_dotenv()
 

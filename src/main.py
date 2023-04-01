@@ -5,10 +5,6 @@ from routes.users import user_router
 from routes.channels import channel_router
 from routes.posts import post_router
 from routes.comments import comment_router
-from models.users import User
-from models.channels import Channel
-from models.posts import Post
-from models.comments import Comment
 from database.connection import init_models
 
 app = FastAPI()
