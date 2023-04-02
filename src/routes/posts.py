@@ -8,7 +8,8 @@ from database.connection import get_session
 from models.users import User, user_post
 from models.channels import Channel
 from models.posts import Post
-from schemas.posts import PostResponse, PostIn
+from schemas.posts import PostResponse, PostIn, HTTP_200_SUCCESS, LIKE_200_SUCCESS, DELETE_200_SUCCESS, \
+    HTTP_404_NOT_FOUND
 
 post_router = APIRouter(tags=['Posts'])
 
@@ -22,7 +23,8 @@ async def get_post(id: UUID, session: AsyncSession = Depends(get_session)) -> Po
     result = await session.get(entity=Post, ident=id)
     return result
 
-@post_router.post('/{id}')
+@post_router.post('/{id}', response_model=HTTP_200_SUCCESS,
+                  responses={status.HTTP_404_NOT_FOUND: {'model': HTTP_404_NOT_FOUND}})
 async def create_post(id: UUID, post: PostIn, user: str = Depends(authenticate), session: AsyncSession = Depends(
     get_session)) -> dict:
     channel_user_id = await session.execute(select(Channel.user_id).where(Channel.id == id))
@@ -33,7 +35,7 @@ async def create_post(id: UUID, post: PostIn, user: str = Depends(authenticate),
     await session.commit()
     return {'message': 'Post created successfully'}
 
-@post_router.post('/like/{id}')
+@post_router.post('/like/{id}', response_model=LIKE_200_SUCCESS)
 async def like(id: UUID, user: str = Depends(authenticate), session: AsyncSession = Depends(
     get_session)) -> dict:
     user_id = await session.execute(select(User.id).where(User.username == user))
@@ -48,7 +50,8 @@ async def like(id: UUID, user: str = Depends(authenticate), session: AsyncSessio
     await session.commit()
     return {'message': 'You liked this post successfully'}
 
-@post_router.put('/{id}', response_model=PostResponse)
+@post_router.put('/{id}', response_model=PostResponse,
+                 responses={status.HTTP_404_NOT_FOUND: {'model': HTTP_404_NOT_FOUND}})
 async def update_post(id: UUID, post: PostIn, user: str = Depends(authenticate),
                          session: AsyncSession = Depends(get_session)) -> PostResponse:
     post_channel_id = await session.execute(select(Post.channel_id).where(Post.id == id))
@@ -63,7 +66,8 @@ async def update_post(id: UUID, post: PostIn, user: str = Depends(authenticate),
     result = await session.get(entity=Post, ident=id)
     return result
 
-@post_router.delete('/{id}')
+@post_router.delete('/{id}', response_model=DELETE_200_SUCCESS,
+                    responses={status.HTTP_404_NOT_FOUND: {'model': HTTP_404_NOT_FOUND}})
 async def delete_post(id: UUID, user: str = Depends(authenticate), session: AsyncSession = Depends(
     get_session)) -> dict:
     post_channel_id = await session.execute(select(Post.channel_id).where(Post.id == id))

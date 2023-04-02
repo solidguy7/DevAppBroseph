@@ -17,3 +17,15 @@ class PostResponse(PostIn):
     created: datetime
     updated: Optional[datetime]
     comments: List[CommentResponse]
+
+class HTTP_200_SUCCESS(BaseModel):
+    message: str = 'Post created successfully'
+
+class DELETE_200_SUCCESS(BaseModel):
+    message: str = 'Post deleted successfully'
+
+class LIKE_200_SUCCESS(BaseModel):
+    message: str = 'You liked this post successfully or You unliked this post successfully'
+
+class HTTP_404_NOT_FOUND(BaseModel):
+    detail: str = 'User doesn`t have such a post'

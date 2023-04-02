@@ -16,3 +16,14 @@ class CommentResponse(CommentIn):
     updated: Optional[datetime]
     user_id: UUID
     post_id: UUID
+
+
+class HTTP_200_SUCCESS(BaseModel):
+    message: str = 'Comment created successfully'
+
+
+class DELETE_200_SUCCESS(BaseModel):
+    message: str = 'Comment deleted successfully'
+
+class HTTP_404_NOT_FOUND(BaseModel):
+    detail: str = 'User doesn`t have such a comment'

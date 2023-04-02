@@ -7,7 +7,7 @@ from sqlalchemy import insert, update, delete
 from auth.authenticate import authenticate
 from models.users import User
 from models.comments import Comment
-from schemas.comments import CommentIn, CommentResponse
+from schemas.comments import CommentIn, CommentResponse, HTTP_200_SUCCESS, DELETE_200_SUCCESS, HTTP_404_NOT_FOUND
 from database.connection import get_session
 
 comment_router = APIRouter(tags=['Comments'])
@@ -22,7 +22,7 @@ async def get_comment(id: UUID, session: AsyncSession = Depends(get_session)) ->
     result = await session.get(entity=Comment, ident=id)
     return result
 
-@comment_router.post('/{id}')
+@comment_router.post('/{id}', response_model=HTTP_200_SUCCESS)
 async def create_comment(id: UUID, comment: CommentIn, user: str = Depends(
     authenticate), session: AsyncSession = Depends(get_session)) -> dict:
     user_id = await session.execute(select(User.id).where(User.username == user))
@@ -30,7 +30,8 @@ async def create_comment(id: UUID, comment: CommentIn, user: str = Depends(
     await session.commit()
     return {'message': 'Comment created successfully'}
 
-@comment_router.put('/{id}', response_model=CommentResponse)
+@comment_router.put('/{id}', response_model=CommentResponse,
+                    responses={status.HTTP_404_NOT_FOUND: {'model': HTTP_404_NOT_FOUND}})
 async def update_comment(id: UUID, comment: CommentIn, user: str = Depends(authenticate),
                          session: AsyncSession = Depends(get_session)) -> CommentResponse:
     comment_user_id = await session.execute(select(Comment.user_id).where(Comment.id == id))
@@ -42,7 +43,8 @@ async def update_comment(id: UUID, comment: CommentIn, user: str = Depends(authe
     result = await session.get(entity=Comment, ident=id)
     return result
 
-@comment_router.delete('/{id}')
+@comment_router.delete('/{id}', response_model=DELETE_200_SUCCESS,
+                       responses={status.HTTP_404_NOT_FOUND: {'model': HTTP_404_NOT_FOUND}})
 async def delete_comment(id: UUID, user: str = Depends(authenticate), session: AsyncSession = Depends(
     get_session)) -> dict:
     comment_user_id = await session.execute(select(Comment.user_id).where(Comment.id == id))

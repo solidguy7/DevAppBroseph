@@ -6,7 +6,8 @@ from sqlalchemy import select, insert, update, delete, exists
 from auth.authenticate import authenticate
 from models.users import User, user_channel
 from models.channels import Channel
-from schemas.channels import ChannelIn, ChannelResponse
+from schemas.channels import ChannelIn, ChannelResponse, HTTP_200_SUCCESS, FOLLOW_200_SUCCESS, DELETE_200_SUCCESS, \
+    HTTP_404_NOT_FOUND, HTTP_406_NOT_ACCEPTABLE
 from database.connection import get_session
 
 channel_router = APIRouter(tags=['Channels'])
@@ -21,7 +22,7 @@ async def get_channel(id: UUID, session: AsyncSession = Depends(get_session)) ->
     result = await session.get(entity=Channel, ident=id)
     return result
 
-@channel_router.post('/')
+@channel_router.post('/', response_model=HTTP_200_SUCCESS)
 async def create_channel(channel: ChannelIn, user: str = Depends(authenticate), session: AsyncSession = Depends(
     get_session)) -> dict:
     user_id = await session.execute(select(User.id).where(User.username == user))
@@ -29,7 +30,8 @@ async def create_channel(channel: ChannelIn, user: str = Depends(authenticate), 
     await session.commit()
     return {'message': 'Channel created successfully'}
 
-@channel_router.post('/follow/{id}')
+@channel_router.post('/follow/{id}', response_model=FOLLOW_200_SUCCESS,
+                     responses={status.HTTP_406_NOT_ACCEPTABLE: {'model': HTTP_406_NOT_ACCEPTABLE}})
 async def follow(id: UUID, user: str = Depends(authenticate), session: AsyncSession = Depends(
     get_session)) -> dict:
     user_id = await session.execute(select(User.id).where(User.username == user))
@@ -46,7 +48,8 @@ async def follow(id: UUID, user: str = Depends(authenticate), session: AsyncSess
     await session.commit()
     return {'message': 'You followed this channel successfully'}
 
-@channel_router.put('/{id}', response_model=ChannelResponse)
+@channel_router.put('/{id}', response_model=ChannelResponse,
+                    responses={status.HTTP_404_NOT_FOUND: {'model': HTTP_404_NOT_FOUND}})
 async def update_channel(id: UUID, channel: ChannelIn, user: str = Depends(authenticate),
                          session: AsyncSession = Depends(get_session)) -> ChannelResponse:
     channel_user_id = await session.execute(select(Channel.user_id).where(Channel.id == id))
@@ -58,7 +61,8 @@ async def update_channel(id: UUID, channel: ChannelIn, user: str = Depends(authe
     result = await session.get(entity=Channel, ident=id)
     return result
 
-@channel_router.delete('/{id}')
+@channel_router.delete('/{id}', response_model=DELETE_200_SUCCESS,
+                       responses={status.HTTP_404_NOT_FOUND: {'model': HTTP_404_NOT_FOUND}})
 async def delete_channel(id: UUID, user: str = Depends(authenticate), session: AsyncSession = Depends(
     get_session)) -> dict:
     channel_user_id = await session.execute(select(Channel.user_id).where(Channel.id == id))
