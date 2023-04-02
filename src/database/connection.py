@@ -5,7 +5,7 @@ import os
 
 load_dotenv()
 
-DATABASE_URL: str = f'postgresql+asyncpg://{os.getenv("POSTGRES_USER")}:{os.getenv("POSTGRES_PASSWORD")}@localhost:5432/postgres'
+DATABASE_URL: str = f'postgresql+asyncpg://{os.getenv("POSTGRES_USER")}:{os.getenv("POSTGRES_PASSWORD")}@db:5432/postgres'
 SECRET_KEY: str = os.getenv('SECRET_KEY')
 
 Base = declarative_base()

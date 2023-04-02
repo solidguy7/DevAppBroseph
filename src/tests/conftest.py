@@ -9,7 +9,7 @@ from database.connection import Base, get_session
 
 load_dotenv()
 
-DATABASE_URL_TEST: str = f'postgresql+asyncpg://{os.getenv("POSTGRES_USER")}:{os.getenv("POSTGRES_PASSWORD")}@localhost:5432/test'
+DATABASE_URL_TEST: str = f'postgresql+asyncpg://{os.getenv("POSTGRES_USER")}:{os.getenv("POSTGRES_PASSWORD")}@db:5432/test'
 
 engine_test = create_async_engine(DATABASE_URL_TEST, echo=True)
 async_session_test = async_sessionmaker(engine_test, class_=AsyncSession, expire_on_commit=False)
