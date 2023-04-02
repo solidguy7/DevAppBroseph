@@ -6,6 +6,7 @@ from auth.hash_password import HashPassword
 from auth.jwt_handler import create_access_token
 from models.users import User, user_channel
 from models.channels import Channel
+from schemas.users import UserIn
 from schemas.channels import ChannelIn
 
 hash_password = HashPassword()
@@ -19,15 +20,17 @@ async def access_token_other_user() -> str:
     return create_access_token('kirill')
 
 @pytest.fixture(autouse=True, scope='module')
-async def mock_data():
+async def mock_data() -> None:
     async with async_session_test() as session:
         password1 = '12345'
         hashed_password1 = hash_password.create_hash(password=password1)
-        await session.execute(insert(User).values(username='test_user', password=hashed_password1, email='test_user@gmail.com'))
+        user1 = UserIn(username='test_user', password=hashed_password1, email='test_user@gmail.com')
+        await session.execute(insert(User).values(**user1.dict()))
 
         password2 = 'qwerty'
         hashed_password2 = hash_password.create_hash(password2)
-        await session.execute(insert(User).values(username='kirill', password=hashed_password2, email='kirill@gmail.com'))
+        user2 = UserIn(username='kirill', password=hashed_password2, email='kirill@gmail.com')
+        await session.execute(insert(User).values(**user2.dict()))
 
         user_id = await session.execute(select(User.id).where(User.username == 'test_user'))
         user_id = user_id.scalar()
@@ -130,7 +133,7 @@ async def test_channel_follow_own(default_client: httpx.AsyncClient, access_toke
         assert response.status_code == 406
         assert response.json() == test_response
 
-async def test_channel_put(default_client: httpx.AsyncClient, access_token: str) -> None:
+async def test_channel_update(default_client: httpx.AsyncClient, access_token: str) -> None:
     async with async_session_test() as session:
         id = await session.execute(select(Channel.id))
         payload = {
@@ -147,7 +150,7 @@ async def test_channel_put(default_client: httpx.AsyncClient, access_token: str)
         assert response.status_code == 200
         assert response.json()['name'] == payload['name']
 
-async def test_channel_put_stranger(default_client: httpx.AsyncClient, access_token_other_user: str) -> None:
+async def test_channel_update_stranger(default_client: httpx.AsyncClient, access_token_other_user: str) -> None:
     async with async_session_test() as session:
         id = await session.execute(select(Channel.id))
         payload = {
