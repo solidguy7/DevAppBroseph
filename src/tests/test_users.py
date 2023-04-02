@@ -1,6 +1,6 @@
 import httpx
 import pytest
-from sqlalchemy import select, insert
+from sqlalchemy import insert
 from .conftest import async_session_test
 from auth.hash_password import HashPassword
 from models.users import User

@@ -24,15 +24,15 @@ async def access_token_other_user() -> str:
 @pytest.fixture(autouse=True, scope='module')
 async def mock_data() -> None:
     async with async_session_test() as session:
-        password1 = '123456789'
-        hashed_password1 = hash_password.create_hash(password=password1)
-        user1 = UserIn(username='ivan', password=hashed_password1, email='ivan@gmail.com')
-        await session.execute(insert(User).values(**user1.dict()))
+        password = '123456789'
+        hashed_password = hash_password.create_hash(password=password)
+        user = UserIn(username='ivan', password=hashed_password, email='ivan@gmail.com')
+        await session.execute(insert(User).values(**user.dict()))
 
-        password2 = 'qwerty123'
-        hashed_password2 = hash_password.create_hash(password2)
-        user2 = UserIn(username='solidguy7', password=hashed_password2, email='solidguy7@gmail.com')
-        await session.execute(insert(User).values(**user2.dict()))
+        password = 'qwerty123'
+        hashed_password = hash_password.create_hash(password)
+        user = UserIn(username='solidguy7', password=hashed_password, email='solidguy7@gmail.com')
+        await session.execute(insert(User).values(**user.dict()))
 
         user_id = await session.execute(select(User.id).where(User.username == 'ivan'))
         channel = ChannelIn(name='new_channel', avatar='new_avatar', description='new_desc')

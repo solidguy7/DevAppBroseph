@@ -31,7 +31,7 @@ async def create_comment(id: UUID, comment: CommentIn, user: str = Depends(
     return {'message': 'Comment created successfully'}
 
 @comment_router.put('/{id}', response_model=CommentResponse)
-async def update_channel(id: UUID, comment: CommentIn, user: str = Depends(authenticate),
+async def update_comment(id: UUID, comment: CommentIn, user: str = Depends(authenticate),
                          session: AsyncSession = Depends(get_session)) -> CommentResponse:
     comment_user_id = await session.execute(select(Comment.user_id).where(Comment.id == id))
     user_id = await session.execute(select(User.id).where(User.username == user))
@@ -43,7 +43,7 @@ async def update_channel(id: UUID, comment: CommentIn, user: str = Depends(authe
     return result
 
 @comment_router.delete('/{id}')
-async def delete_channel(id: UUID, user: str = Depends(authenticate), session: AsyncSession = Depends(
+async def delete_comment(id: UUID, user: str = Depends(authenticate), session: AsyncSession = Depends(
     get_session)) -> dict:
     comment_user_id = await session.execute(select(Comment.user_id).where(Comment.id == id))
     user_id = await session.execute(select(User.id).where(User.username == user))
